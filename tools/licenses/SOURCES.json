@@ -1,0 +1,8 @@
+{
+  "retrieved_on": "2026-10-05",
+  "files": {
+    "Python-3.11.16-dependency-licenses.txt": "https://raw.githubusercontent.com/python/cpython/v3.11.16/Doc/license.rst",
+    "OpenSSL-3.5.7-LICENSE.txt": "https://raw.githubusercontent.com/openssl/openssl/openssl-3.5.7/LICENSE.txt",
+    "libffi-LICENSE.txt": "https://raw.githubusercontent.com/libffi/libffi/master/LICENSE"
+  }
+}

@@ -10,6 +10,18 @@
 """
 import platform
 
+
+def time_duration_to_seconds(duration):
+    if not duration:
+        return 0
+    parts = str(duration).split(":")
+    if len(parts) not in (1, 2, 3):
+        raise ValueError("无效的歌曲时长")
+    seconds = 0
+    for part in parts:
+        seconds = seconds * 60 + int(part)
+    return seconds
+
 colors = {
     "red": "\033[31m",
     "green": "\033[32m",

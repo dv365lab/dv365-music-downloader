@@ -16,7 +16,7 @@ def init():
     global opts
     opts = {
         # 自定义来源 -s --source
-        "source": "baidu netease qq kugou",
+        "source": "netease qq kugou",
         # 自定义数量 -n --number
         "number": 5,
         # 保存目录 -o --outdir
@@ -41,6 +41,9 @@ def init():
         "play": False,
         # 过滤器，如'size>8,length>300'表示大于8MB且时长超过5分钟
         "filter": "",
+        "timeout": (5, 10),
+        "cancel_event": None,
+        "progress_callback": None,
         # 一般情况下的headers
         "fake_headers": {
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",  # noqa
@@ -65,7 +68,7 @@ def init():
 
 
 def get(key):
-    return opts.get(key, "")
+    return globals().get("opts", {}).get(key, "")
 
 
 def set(key, value):

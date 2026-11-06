@@ -94,7 +94,7 @@ class QQSong(BasicSong):
                     self.ext = rate[1]
                     self.rate = rate[2]
                     break
-        super(QQSong, self).download()
+        return super(QQSong, self).download()
 
 
 def qq_search(keyword) -> list:

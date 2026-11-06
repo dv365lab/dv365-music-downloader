@@ -12,6 +12,7 @@ import gettext
 import click
 
 # 导入用于播放音乐的库
+os.environ.setdefault("PYGAME_HIDE_SUPPORT_PROMPT", "1")
 try:
     import pygame
     PYGAME_AVAILABLE = True
@@ -21,21 +22,7 @@ except ImportError:
 gettext.install("music-dl", "locale")
 
 # 导入工具函数
-from .utils import colorize
-
-
-def time_duration_to_seconds(duration):
-    """将时间字符串(如'05:30')转换为秒数"""
-    if not duration:
-        return 0
-    
-    parts = duration.split(":")
-    if len(parts) == 3:  # H:M:S
-        return int(parts[0]) * 3600 + int(parts[1]) * 60 + int(parts[2])
-    elif len(parts) == 2:  # M:S
-        return int(parts[0]) * 60 + int(parts[1])
-    else:  # S
-        return int(parts[0])
+from .utils import colorize, time_duration_to_seconds
 
 
 def play_music(song_files):
@@ -238,4 +225,4 @@ def play_music(song_files):
     
     pygame.mixer.quit()
     pygame.quit()
-    click.echo(_("\n播放结束")) 
+    click.echo(_("\n播放结束"))

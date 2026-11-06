@@ -1,0 +1,6 @@
+#!/usr/bin/env python
+"""Source launcher for dv365-music-downloader."""
+from music_dl.__main__ import main
+
+if __name__ == "__main__":
+    main()

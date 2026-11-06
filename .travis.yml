@@ -1,4 +1,3 @@
-# https://travis-ci.org/0xHJK/music-dl
 language: python
 
 install:

@@ -106,7 +106,7 @@ class NeteaseSong(BasicSong):
             self.song_url = res_data[0].get("url", "")
             self.rate = int(res_data[0].get("br", 0) / 1000)
 
-        super(NeteaseSong, self).download()
+        return super(NeteaseSong, self).download()
 
 
 def netease_search(keyword) -> list:

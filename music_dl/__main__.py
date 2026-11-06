@@ -16,9 +16,15 @@ import prettytable as pt
 from . import config
 from .utils import colorize
 from .source import MusicSource
-from .player import play_music, time_duration_to_seconds
+from .filters import filter_songs, parse_filter
+from .__version__ import __version__
 
 gettext.install("music-dl", "locale")
+
+
+def play_music(files):
+    from .player import play_music as play
+    return play(files)
 
 
 def menu(songs_list):
@@ -58,24 +64,28 @@ def menu(songs_list):
     
     for choice in choices.split():
         start, to, end = choice.partition("-")
+        if int(start) >= len(songs_list) or (end and int(end) >= len(songs_list)):
+            raise click.BadParameter("下载序号超出范围")
+        if end and int(end) < int(start):
+            raise click.BadParameter("下载序号范围必须由小到大")
         if end:
             selected_list += range(int(start), int(end) + 1)
         else:
             selected_list.append(int(start))
 
-    for idx in selected_list:
-        if idx < len(songs_list):
-            song = songs_list[idx]
-            # 记录下载前的文件不存在状态
-            song_file_exists = os.path.exists(song.song_fullname) if hasattr(song, 'song_fullname') else False
-            
-            # 下载歌曲
-            song.download()
-            
-            # 确认文件被下载成功（通过检查文件是否存在且下载前不存在）
-            if hasattr(song, 'song_fullname') and os.path.exists(song.song_fullname) and (song.song_url or not song_file_exists):
-                downloaded_files.append(song.song_fullname)
-    
+    if any(idx < 0 or idx >= len(songs_list) for idx in selected_list):
+        raise click.BadParameter("下载序号超出范围")
+    for idx in dict.fromkeys(selected_list):
+        song = songs_list[idx]
+        try:
+            result = song.download()
+            if result:
+                downloaded_files.append(result)
+            else:
+                click.echo("该音乐源未提供可用下载链接", err=True)
+        except RuntimeError as exc:
+            click.echo("下载失败：%s" % exc, err=True)
+
     # 如果启用了播放功能，则播放下载的音乐
     if config.get("play") and downloaded_files:
         play_music(downloaded_files)
@@ -83,75 +93,31 @@ def menu(songs_list):
 
 def run():
     ms = MusicSource()
-    if config.get("keyword"):
+    while config.get("keyword"):
         songs_list = ms.search(config.get("keyword"), config.get("source").split())
-        
-        # 处理过滤条件
-        filter_str = config.get("filter")
-        if filter_str:
-            for condition in filter_str.split(','):
-                if not condition:
-                    continue
-                
-                # 解析条件
-                filtered_songs = []
-                
-                if condition.startswith("size"):
-                    # 解析大小条件
-                    if ">" in condition:
-                        size_limit = float(condition.split(">")[1])
-                        filtered_songs = [song for song in songs_list if 
-                                          (song.size and song.size > size_limit) or not song.size]
-                    elif "<" in condition:
-                        size_limit = float(condition.split("<")[1])
-                        filtered_songs = [song for song in songs_list if 
-                                          (song.size and song.size < size_limit) or not song.size]
-                    elif "=" in condition:
-                        size_equal = float(condition.split("=")[1])
-                        filtered_songs = [song for song in songs_list if 
-                                          (song.size and abs(song.size - size_equal) < 0.01) or not song.size]
-                
-                elif condition.startswith("length"):
-                    # 解析时长条件
-                    if ">" in condition:
-                        length_limit = int(condition.split(">")[1])
-                        filtered_songs = [song for song in songs_list if 
-                                        not song._duration or time_duration_to_seconds(song._duration) > length_limit]
-                    elif "<" in condition:
-                        length_limit = int(condition.split("<")[1])
-                        filtered_songs = [song for song in songs_list if 
-                                        not song._duration or time_duration_to_seconds(song._duration) < length_limit]
-                    elif "=" in condition:
-                        length_equal = int(condition.split("=")[1])
-                        filtered_songs = [song for song in songs_list if 
-                                        not song._duration or time_duration_to_seconds(song._duration) == length_equal]
-                
-                # 更新歌曲列表
-                songs_list = filtered_songs
-        
-        menu(songs_list)
+        songs_list = filter_songs(songs_list, config.get("filter"))
+        if songs_list:
+            menu(songs_list)
+        else:
+            click.echo("未找到可用结果，请更换关键词或音乐源。")
         config.set("keyword", click.prompt(_("请输入要搜索的歌曲，或Ctrl+C退出") + "\n >>"))
-        run()
-    elif config.get("playlist"):
+    if config.get("playlist"):
         songs_list = ms.playlist(config.get("playlist"))
-        menu(songs_list)
+        if songs_list:
+            menu(songs_list)
+        else:
+            raise click.ClickException("无法获取歌单或歌单为空")
     elif config.get("url"):
         song = ms.single(config.get("url"))
-        # 记录下载前的文件不存在状态
-        song_file_exists = os.path.exists(song.song_fullname) if hasattr(song, 'song_fullname') else False
-        
-        # 下载歌曲
-        song.download()
-        
-        # 如果启用了播放功能，则播放下载的音乐
-        if config.get("play") and hasattr(song, 'song_fullname') and os.path.exists(song.song_fullname) and (song.song_url or not song_file_exists):
-            play_music([song.song_fullname])
-    else:
-        return
+        if song is None:
+            raise click.ClickException("无法获取歌曲，请检查链接或音乐源状态")
+        result = song.download()
+        if config.get("play") and result:
+            play_music([result])
 
 
 @click.command()
-@click.version_option()
+@click.version_option(version=__version__, prog_name="dv365-music-downloader")
 @click.option("-k", "--keyword", help=_("搜索关键字，歌名和歌手同时输入可以提高匹配（如 空帆船 朴树）"))
 @click.option("-u", "--url", default="", help=_("通过指定的歌曲URL下载音乐"))
 @click.option("-p", "--playlist", default="", help=_("通过指定的歌单URL下载音乐"))
@@ -159,9 +125,9 @@ def run():
     "-s",
     "--source",
     # default="qq netease kugou baidu",
-    help=_("支持的数据源: ") + "baidu",
+    help=_("支持的数据源: ") + "netease qq kugou migu baidu（历史接口）",
 )
-@click.option("-n", "--number", default=5, help=_("搜索数量限制"))
+@click.option("-n", "--number", type=click.IntRange(1, 50), default=5, help=_("搜索数量限制"))
 @click.option("-o", "--outdir", default=".", help=_("指定输出目录"))
 @click.option("-x", "--proxy", default="", help=_("指定代理（如http://127.0.0.1:1087）"))
 @click.option("-v", "--verbose", default=False, is_flag=True, help=_("详细模式"))
@@ -187,9 +153,16 @@ def main(
 ):
     """
         Search and download music from netease, qq, kugou, baidu and xiami.
-        Example: music-dl -k "周杰伦"
+        Example: dv365-music-downloader -k "周杰伦"
     """
-    if sum([bool(keyword), bool(url), bool(playlist)]) != 1:
+    try:
+        parse_filter(filter)
+    except ValueError as exc:
+        raise click.BadParameter(str(exc), param_hint="--filter") from exc
+    selected_modes = sum([bool(keyword), bool(url), bool(playlist)])
+    if selected_modes > 1:
+        raise click.UsageError("搜索关键字、单曲链接和歌单链接只能选择一种")
+    if selected_modes == 0:
         # click.echo(_("ERROR: 必须指定搜索关键字、歌曲的URL或歌单的URL中的一个") + "\n", err=True)
         # ctx = click.get_current_context()
         # click.echo(ctx.get_help())
@@ -218,14 +191,16 @@ def main(
     level = logging.INFO if verbose else logging.WARNING
     logging.basicConfig(
         level=level,
-        format="[%(asctime)s] %(levelname)-8s | %(name)s: %(msg)s ",
+        format="[%(asctime)s] %(levelname)-8s | %(name)s: %(message)s ",
         datefmt="%H:%M:%S",
     )
 
     try:
         run()
-    except (EOFError, KeyboardInterrupt):
-        sys.exit(0)
+    except (EOFError, KeyboardInterrupt, click.Abort):
+        return
+    except RuntimeError as exc:
+        raise click.ClickException(str(exc)) from exc
 
 
 if __name__ == "__main__":

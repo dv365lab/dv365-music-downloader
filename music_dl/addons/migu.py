@@ -10,6 +10,7 @@ import copy
 from .. import config
 from ..api import MusicApi
 from ..song import BasicSong
+from ..exceptions import DownloadError
 
 
 class MiguApi(MusicApi):
@@ -58,8 +59,8 @@ def migu_search(keyword) -> list:
         song.id = item.get("id", "")
         song.title = item.get("name", "")
         song.singer = "、".join(singers)
-        song.album = item.get("albums", [])[0].get("name", "")
-        song.cover_url = item.get("imgItems", [])[0].get("img", "")
+        song.album = (item.get("albums") or [{}])[0].get("name", "")
+        song.cover_url = (item.get("imgItems") or [{}])[0].get("img", "")
         song.lyrics_url = item.get("lyricUrl", item.get("trcUrl", ""))
         # song.duration = item.get("interval", 0)
         # 特有字段
@@ -74,7 +75,10 @@ def migu_search(keyword) -> list:
                 contentId=song.content_id,
                 resourceType=rate.get("resourceType", "E"),
             )
-            song.song_url = url
+            try:
+                song.song_url = url
+            except (DownloadError, ValueError):
+                continue
             if song.available:
                 song.size = round(int(rate.get("size", 0)) / 1048576, 2)
                 ext = "flac" if rate.get("formatType", "") == "SQ" else "mp3"

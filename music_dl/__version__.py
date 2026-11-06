@@ -6,9 +6,9 @@
 @time: 2019-01-28
 """
 
-__title__ = "pymusic-dl"
+__title__ = "dv365-music-downloader"
 __description__ = "Search and download music from netease, qq, kugou, baidu and xiami."
-__url__ = "https://github.com/0xHJK/music-dl"
+__url__ = ""
 __version__ = "3.0.1"
 __author__ = "HJK"
 __author_email__ = "HJKdev@gmail.com"

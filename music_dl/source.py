@@ -16,6 +16,7 @@ import importlib
 import traceback
 import logging
 import click
+from urllib.parse import urlparse
 from . import config
 from .utils import colorize
 from .exceptions import *
@@ -28,6 +29,7 @@ class MusicSource:
 
     def __init__(self):
         self.logger = logging.getLogger(__name__)
+        self.errors = []
 
     def search(self, keyword, sources_list) -> list:
         sources_map = {
@@ -43,6 +45,7 @@ class MusicSource:
         thread_pool = []
         ret_songs_list = []
         ret_errors = []
+        self.errors = ret_errors
 
         click.echo("")
         click.echo(
@@ -66,16 +69,19 @@ class MusicSource:
         for t in thread_pool:
             t.join()
 
+        event = config.get("cancel_event")
+        if event and event.is_set():
+            raise CancelledError("操作已取消")
+
         click.echo("")
         # 输出错误信息
         for err in ret_errors:
-            self.logger.debug(_("音乐列表 {error} 获取失败.").format(error=err[0].upper()))
-            self.logger.debug(err[1])
+            self.logger.warning("%s：%s", err[0].upper(), err[1])
 
         # 对搜索结果排序和去重
         if not config.get("nomerge"):
             ret_songs_list.sort(
-                key=lambda song: (song.singer, song.title, song.size), reverse=True
+                key=lambda song: (song.singer, song.title, float(song.size or 0)), reverse=True
             )
             tmp_list = []
             for i in range(len(ret_songs_list)):
@@ -95,7 +101,7 @@ class MusicSource:
     def search_thread(self, source, keyword, ret_songs_list, ret_errors):
         try:
             addon = importlib.import_module(".addons." + source, __package__)
-            ret_songs_list += addon.search(keyword)
+            ret_songs_list.extend(addon.search(keyword))
         except (RequestError, ResponseError, DataError) as e:
             ret_errors.append((source, e))
         except Exception as e:
@@ -115,7 +121,8 @@ class MusicSource:
             # "qq.com": "qq",
             # "xiami.com": "xiami",
         }
-        sources = [v for k, v in sources_map.items() if k in url]
+        hostname = urlparse(url).hostname or ""
+        sources = [v for k, v in sources_map.items() if hostname == k or hostname.endswith("." + k)]
         if not sources:
             raise ParameterError("Invalid url.")
         source = sources[0]
@@ -140,7 +147,8 @@ class MusicSource:
             # "qq.com": "qq",
             # "xiami.com": "xiami",
         }
-        sources = [v for k, v in sources_map.items() if k in url]
+        hostname = urlparse(url).hostname or ""
+        sources = [v for k, v in sources_map.items() if hostname == k or hostname.endswith("." + k)]
         if not sources:
             raise ParameterError("Invalid url.")
         source = sources[0]

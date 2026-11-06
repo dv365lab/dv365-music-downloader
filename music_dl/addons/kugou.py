@@ -53,7 +53,7 @@ class KugouSong(BasicSong):
         self.ext = res_data.get("extName", "mp3")
         self.cover_url = res_data.get("album_img", "").replace("{size}", "150")
 
-        super(KugouSong, self).download()
+        return super(KugouSong, self).download()
 
 
 def kugou_search(keyword) -> list:

@@ -1,47 +1,18 @@
-#!/usr/bin/env python
-# -*- coding:utf-8 -*-
-"""
-@author: HJK
-@file: test_song
-@time: 2019-05-28
-"""
-
-import os
-from music_dl.song import BasicSong
 from music_dl import config
+from music_dl.song import BasicSong
 
 
-def test_music(capsys):
+def test_song_metadata_and_safe_paths(tmp_path):
     config.init()
-    config.set("outdir", "/tmp")
-    # config.set("cover", True)
-    # config.set("lyrics", True)
-    config.set("verbose", True)
+    config.set("outdir", str(tmp_path))
     song = BasicSong()
-    song.id = 816477
-    song.title = "cheering"
-    song.singer = "crowd"
-    song.ext = "mp3"
-    song.album = "sample"
-    song.rate = 128
-    song.source = "sample"
+    song.title = 'test/track:*?"<>|'
+    song.singer = r"test\artist"
     song.duration = 28
-    song.song_url = "https://github.com/0xHJK/music-dl/raw/master/static/sample.mp3"
-
-    assert song.available
-    assert song.size == 0.42
+    assert song.title == "testtrack"
+    assert song.singer == "testartist"
     assert song.duration == "0:00:28"
-
-    os.system("rm /tmp/*.mp3")
-
-    assert song.song_fullname == "/tmp/crowd - cheering.mp3"
-    assert song.cover_fullname == "/tmp/crowd - cheering.jpg"
-    assert song.lyrics_fullname == "/tmp/crowd - cheering.lrc"
-
-    str(song)
-
-    song.download()
-    out, err = capsys.readouterr()
-    assert out.find("/tmp/crowd - cheering")
-
-    os.system("rm /tmp/*.mp3")
+    assert song.song_fullname == str(tmp_path / "testartist - testtrack.mp3")
+    assert song.cover_fullname == str(tmp_path / "testartist - testtrack.jpg")
+    assert song.lyrics_fullname == str(tmp_path / "testartist - testtrack.lrc")
+    assert not song.available

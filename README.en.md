@@ -1,35 +1,16 @@
-# Music-dl: Listen to what you want
+# dv365-music-downloader: Listen to what you want
 
-<p align="center">
-  <a href="https://github.com/0xHJK/music-dl">
-    <img src="https://github.com/0xHJK/music-dl/raw/master/static/logo.png" height="400" alt="music-dl">
-  </a>
-</p>
-<hr>
-<p align="center">
-  <a href="https://travis-ci.org/0xHJK/music-dl">
-    <img src="https://travis-ci.org/0xHJK/music-dl.svg?branch=master">
-  </a>
-  <a><img src="https://img.shields.io/pypi/pyversions/pymusic-dl.svg"></a>
-  <a href="https://codecov.io/gh/0xHJK/music-dl">
-    <img src="https://codecov.io/gh/0xHJK/music-dl/branch/master/graph/badge.svg"/>
-  </a>
-  <a href="https://github.com/0xHJK/music-dl/releases">
-    <img src="https://img.shields.io/github/release/0xHJK/music-dl.svg">
-  </a>
-  <a><img src="https://img.shields.io/github/license/0xHJK/music-dl.svg"></a>
-</p>
 
-**[Music-dl](https://github.com/0xHJK/music-dl)** is a command line tool which helps you search and download music from multiple sources.
+
+**dv365-music-downloader** is a command line tool which helps you search and download music from multiple sources.
 
 Support for QQ music, Netease music, Xiami music, Kugou music and Baidu music. See [supported sources](#supported-sources).
 
 **Python3 Only. Python 3.5+ Recommended.**
 
-English | [中文文档](https://github.com/0xHJK/music-dl/blob/master/README.md)
+English | [中文文档](README.md)
 
-> Note: Some music sources may not be available in some countries and regions. If that happens, you could use Chinese proxies. See <https://github.com/0xHJK/Proxies> for public proxies.
-
+> Note: Some music sources may not be available in your region. Configure a proxy only where permitted by local laws and platform rules.
 - Support for lossless music
 - Search for high-quality music with priority ( flac -> 320K -> 128K )
 - Support for HTTP and SOCKS proxy
@@ -46,36 +27,34 @@ English | [中文文档](https://github.com/0xHJK/music-dl/blob/master/README.md
 Install using pip (Recommended)
 
 ```bash
-$ pip3 install pymusic-dl
+$ pip3 install -e .
 ```
 
 Manual
 
 ```bash
-$ git clone https://github.com/0xHJK/music-dl.git
-$ cd music-dl
+$ cd dv365-music-downloader
 $ python3 setup.py install
 ```
 
 Use directly
 
 ```bash
-$ git clone https://github.com/0xHJK/music-dl.git
-$ cd music-dl
+$ cd dv365-music-downloader
 $ pip3 install -r requirements.txt
-$ ./music-dl
+$ ./dv365-music-downloader
 
-# OR python3 music-dl
+# OR python3 dv365-music-downloader
 ```
 
 ## Usage
 
 ```
-$ music-dl --help
-Usage: music-dl [OPTIONS]
+$ dv365-music-downloader --help
+Usage: dv365-music-downloader [OPTIONS]
 
   Search and download music from netease, qq, kugou, baidu and xiami.
-  Example: music-dl -k "Bruno Mars"
+  Example: dv365-music-downloader -k "Bruno Mars"
 
 Options:
   --version            Show the version and exit.
@@ -110,16 +89,14 @@ Options:
   - `=`: Equal to
 
   ```bash
-  music-dl -k --filter "size>8" # Only show songs larger than 8MB
-  music-dl -k --filter "size<3" # Only show songs smaller than 3MB
-  music-dl -k --filter "length>300" # Only show songs longer than 5 minutes
-  music-dl -k --filter "length>180,length<300" # Only show songs between 3-5 minutes
-  music-dl -k --filter "size>3,size<8,length>240" # Only show songs between 3-8MB and longer than 4 minutes
+  dv365-music-downloader -k --filter "size>8" # Only show songs larger than 8MB
+  dv365-music-downloader -k --filter "size<3" # Only show songs smaller than 3MB
+  dv365-music-downloader -k --filter "length>300" # Only show songs longer than 5 minutes
+  dv365-music-downloader -k --filter "length>180,length<300" # Only show songs between 3-5 minutes
+  dv365-music-downloader -k --filter "size>3,size<8,length>240" # Only show songs between 3-8MB and longer than 4 minutes
   ```
 
-Example:
 
-![](https://github.com/0xHJK/music-dl/raw/master/static/preview-en.png)
 
 ## Supported sources
 
@@ -134,15 +111,12 @@ Example:
 
 Welcome to submit plugins to support more music sources! Refer to the files in `extractors`.
 
-![](https://github.com/0xHJK/music-dl/raw/master/static/fork.png)
+
 
 ## Credits
 
-- <https://github.com/requests/requests>
-- <https://github.com/soimort/you-get>
-- <https://github.com/maicong/music>
-- <https://github.com/YongHaoWu/NeteaseCloudMusicFlac>
+Thanks to the developers of requests, you-get, music, and NeteaseCloudMusicFlac for their ideas.
 
 ## LICENSE
 
-[MIT License](https://github.com/0xHJK/music-dl/blob/master/LICENSE)
+[MIT License](LICENSE)
